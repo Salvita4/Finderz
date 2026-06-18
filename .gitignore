@@ -1,0 +1,12 @@
+/home/salvita/Escritorio/EMP/Finderz/Back/Finderz
+
+# Ignore node_modules and dist folders
+node_modules/
+dist/
+# Ignore environment variable files
+.env
+.env.local
+.env.*.local
+# Ignore log files
+*.log
+# Ignore OS generated files
