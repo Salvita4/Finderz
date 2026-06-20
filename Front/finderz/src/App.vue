@@ -24,7 +24,7 @@
             <header class="topbar">
               <button class="brand" type="button" @click="activeTab = 'map'">
                 <span class="brand-mark">
-                  <ion-img src="/logoFinderzSinTexto.png" />
+                  <img class="brand-logo" src="/logoFinderzSinTexto.png" alt="Finderz" />
                 </span>
                 <strong>FINDERZ</strong>
               </button>
@@ -436,6 +436,14 @@ button {
 .brand-mark {
   background: rgba(157, 78, 221, 0.46);
   color: #d9c2ff;
+  overflow: hidden;
+}
+
+.brand-logo {
+  display: block;
+  height: 26px;
+  object-fit: contain;
+  width: 26px;
 }
 
 .icon-btn {
