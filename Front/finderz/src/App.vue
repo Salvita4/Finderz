@@ -24,7 +24,7 @@
             <header class="topbar">
               <button class="brand" type="button" @click="activeTab = 'map'">
                 <span class="brand-mark">
-                  <ion-img src="/public/logoFinderzSinTexto.png" />
+                  <ion-img src="logoFinderzSinTexto.png" />
                 </span>
                 <strong>FINDERZ</strong>
               </button>
