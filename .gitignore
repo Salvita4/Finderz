@@ -1,12 +1,14 @@
-/home/salvita/Escritorio/EMP/Finderz/Back/Finderz
-
 # Ignore node_modules and dist folders
 node_modules/
 dist/
+Back/Finderz/
 # Ignore environment variable files
 .env
 .env.local
 .env.*.local
 # Ignore log files
 *.log
+# Ignore Python generated files
+__pycache__/
+*.py[cod]
 # Ignore OS generated files

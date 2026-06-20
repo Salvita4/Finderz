@@ -52,6 +52,7 @@ import { festivalPois, friendColors, percentToWorld } from './types';
 
 const props = defineProps<{
   friends: Friend[];
+  pois?: POI[];
   routeTarget: RouteTarget | null;
 }>();
 
@@ -92,6 +93,7 @@ const legendItems = [
 ];
 
 const radarFriends = computed(() => props.friends.filter((friend) => friend.status === 'online'));
+const mapPois = computed(() => props.pois?.length ? props.pois : festivalPois);
 
 function poiColor(type: POI['type']) {
   return {
@@ -261,7 +263,7 @@ function addPoiHitbox(poi: POI, x: number, z: number, w: number, h: number, d: n
 }
 
 function findPoi(id: string) {
-  return festivalPois.find((poi) => poi.id === id);
+  return mapPois.value.find((poi) => poi.id === id);
 }
 
 function pickPoi(event: PointerEvent, persist = false) {

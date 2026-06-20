@@ -43,7 +43,7 @@
             <main class="content-stage">
               <section v-show="activeTab === 'map'" class="tab-panel map-panel">
                 <div class="map-wrap">
-                  <FestivalMapIsometric :friends="friends" :route-target="routeTarget" />
+                  <FestivalMapIsometric :key="mapKey" :friends="friends" :pois="pois" :route-target="routeTarget" />
                   <button class="panic-button" type="button" aria-label="Abrir asistencia" @click="showPanic = true">
                     <ion-icon :icon="shieldOutline" />
                   </button>
@@ -154,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { IonApp, IonContent, IonIcon, IonPage } from '@ionic/vue';
 import {
   calendarOutline,
@@ -175,6 +175,7 @@ import AgendaPanel from './components/finderz/AgendaPanel.vue';
 import GroupsPanel from './components/finderz/GroupsPanel.vue';
 import PanicModal from './components/finderz/PanicModal.vue';
 import PromotionsPanel from './components/finderz/PromotionsPanel.vue';
+import { api } from './services/api';
 import {
   festivalPois,
   friendColors,
@@ -192,11 +193,13 @@ type TabId = 'map' | 'groups' | 'agenda' | 'promos' | 'profile';
 const activeTab = ref<TabId>('map');
 const friends = ref<Friend[]>([...initialFriends]);
 const promotions = ref<Promotion[]>([...initialPromotions]);
+const pois = ref<POI[]>([...festivalPois]);
 const routeTarget = ref<RouteTarget | null>(null);
 const selectedPoi = ref<string | null>(null);
 const showPanic = ref(false);
 const adminMode = ref(false);
 const promoAlert = ref<Promotion | null>(null);
+const mapKey = ref(0);
 
 const tabs = [
   { id: 'map' as const, label: 'Mapa', icon: navigateCircleOutline },
@@ -206,7 +209,7 @@ const tabs = [
   { id: 'profile' as const, label: 'Perfil', icon: personOutline },
 ];
 
-const quickPois = computed(() => festivalPois.filter((poi) => poi.type !== 'restroom').slice(0, 9));
+const quickPois = computed(() => pois.value.filter((poi) => poi.type !== 'restroom').slice(0, 9));
 const activePromos = computed(() => promotions.value.filter((promo) => !promo.used).length);
 const newPromoCount = computed(() => promotions.value.filter((promo) => promo.isNew).length);
 const promoBadge = computed(() => newPromoCount.value || activePromos.value);
@@ -248,26 +251,85 @@ function navigateFriend(friend: Friend, switchToMap = false) {
   if (switchToMap) activeTab.value = 'map';
 }
 
-function toggleFaro(id: string) {
-  friends.value = friends.value.map((friend) => friend.id === id ? { ...friend, faro: !friend.faro } : friend);
+async function loadBackendData() {
+  try {
+    const [backendFriends, backendPois, backendPromotions] = await Promise.all([
+      api.getFriends(),
+      api.getPois(),
+      api.getPromotions(),
+    ]);
+    friends.value = backendFriends;
+    pois.value = backendPois;
+    promotions.value = backendPromotions;
+    mapKey.value += 1;
+  } catch (error) {
+    console.warn('No se pudo conectar con el backend, se usan datos locales.', error);
+  }
 }
 
-function addFriend(friend: Friend) {
+async function toggleFaro(id: string) {
+  const previous = [...friends.value];
+  friends.value = friends.value.map((friend) => friend.id === id ? { ...friend, faro: !friend.faro } : friend);
+  try {
+    const updated = await api.toggleFaro(id);
+    friends.value = friends.value.map((friend) => friend.id === id ? updated : friend);
+  } catch (error) {
+    friends.value = previous;
+    console.warn('No se pudo actualizar el faro.', error);
+  }
+}
+
+async function addFriend(friend: Friend) {
   if (friends.value.some((item) => item.id === friend.id)) return;
   friends.value = [...friends.value, friend];
+  mapKey.value += 1;
+  try {
+    const created = await api.createFriend(friend);
+    friends.value = friends.value.map((item) => item.id === friend.id ? created : item);
+  } catch (error) {
+    friends.value = friends.value.filter((item) => item.id !== friend.id);
+    mapKey.value += 1;
+    console.warn('No se pudo agregar el amigo.', error);
+  }
 }
 
-function usePromo(id: string) {
+async function usePromo(id: string) {
+  const previous = [...promotions.value];
   promotions.value = promotions.value.map((promo) => promo.id === id ? { ...promo, used: true, isNew: false } : promo);
+  try {
+    const updated = await api.usePromotion(id);
+    promotions.value = promotions.value.map((promo) => promo.id === id ? updated : promo);
+  } catch (error) {
+    promotions.value = previous;
+    console.warn('No se pudo usar la promo.', error);
+  }
 }
 
-function clearNewPromo(id: string) {
+async function clearNewPromo(id: string) {
+  const previous = [...promotions.value];
   promotions.value = promotions.value.map((promo) => promo.id === id ? { ...promo, isNew: false } : promo);
+  try {
+    const updated = await api.clearNewPromotion(id);
+    promotions.value = promotions.value.map((promo) => promo.id === id ? updated : promo);
+  } catch (error) {
+    promotions.value = previous;
+    console.warn('No se pudo limpiar la promo nueva.', error);
+  }
 }
 
-function launchPromo(promo: Promotion) {
+async function launchPromo(promo: Promotion) {
   promotions.value = [promo, ...promotions.value];
   promoAlert.value = promo;
+  try {
+    const created = await api.createPromotion(promo);
+    promotions.value = promotions.value.map((item) => item.id === promo.id ? created : item);
+    promoAlert.value = created;
+  } catch (error) {
+    promotions.value = promotions.value.filter((item) => item.id !== promo.id);
+    promoAlert.value = null;
+    console.warn('No se pudo lanzar la promo.', error);
+    return;
+  }
   setTimeout(() => {
     if (promoAlert.value?.id === promo.id) promoAlert.value = null;
   }, 5000);
@@ -280,6 +342,8 @@ function friendDotStyle(friend: Friend) {
     boxShadow: friend.status === 'online' ? `0 0 7px ${friendColors[friend.id]?.glow}` : 'none',
   };
 }
+
+onMounted(loadBackendData);
 
 </script>
 
