@@ -38,7 +38,7 @@ pois: dict[str, Poi] = {
     "foodCourt": Poi(id="foodCourt", name="Food Court", type="food", wx=9.5, wz=9.5, icon="🍔"),
     "beerGarden": Poi(id="beerGarden", name="Beer Garden", type="bar", wx=-5.5, wz=2, icon="🍺"),
     "camping": Poi(id="camping", name="Camping", type="food", wx=-9.5, wz=9.5, icon="⛺"),
-    "medical": Poi(id="medical", name="Medico", type="medical", wx=-3.5, wz=5.8, icon="🏥"),
+    "medical": Poi(id="medical", name="Medico", type="medical", wx=-3.8, wz=-3.8, icon="🏥"),
     "info": Poi(id="info", name="Info / Merch", type="info", wx=3.5, wz=4, icon="ℹ️"),
     "restroomW": Poi(id="restroomW", name="Banos Oeste", type="restroom", wx=-13.5, wz=2, icon="🚻"),
     "restroomE": Poi(id="restroomE", name="Banos Este", type="restroom", wx=13.5, wz=2, icon="🚻"),

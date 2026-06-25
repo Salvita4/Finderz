@@ -58,7 +58,7 @@
               <ion-icon :icon="navigateOutline" />
             </button>
 
-            <button type="button" class="panic-option medical" @click="goTo({ wx: -3.5, wz: 5.8, label: 'Puesto Medico', color: '#ef4444', type: 'panic' })">
+            <button type="button" class="panic-option medical" @click="goTo({ wx: -3.8, wz: -3.8, label: 'Puesto Medico', color: '#ef4444', type: 'panic' })">
               <span class="option-icon">
                 <ion-icon :icon="heartOutline" />
               </span>
